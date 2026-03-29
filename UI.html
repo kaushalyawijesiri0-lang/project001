@@ -1,0 +1,1660 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Smart Boarding Finder</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,600;1,9..144,300&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --brand: #3B82F6;
+    --brand-light: #EFF6FF;
+    --brand-mid: #BFDBFE;
+    --brand-dark: #1D4ED8;
+    --accent: #06B6D4;
+    --success: #10B981;
+    --warning: #F59E0B;
+    --danger: #EF4444;
+    --gray-50: #F9FAFB;
+    --gray-100: #F3F4F6;
+    --gray-200: #E5E7EB;
+    --gray-300: #D1D5DB;
+    --gray-400: #9CA3AF;
+    --gray-500: #6B7280;
+    --gray-600: #4B5563;
+    --gray-700: #374151;
+    --gray-800: #1F2937;
+    --gray-900: #111827;
+    --white: #FFFFFF;
+    --radius-sm: 8px;
+    --radius-md: 12px;
+    --radius-lg: 16px;
+    --radius-xl: 24px;
+    --shadow-sm: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+    --shadow-md: 0 4px 12px rgba(0,0,0,0.08), 0 2px 4px rgba(0,0,0,0.04);
+    --shadow-lg: 0 10px 28px rgba(0,0,0,0.10), 0 4px 10px rgba(0,0,0,0.06);
+    --nav-h: 64px;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body { font-family: 'Plus Jakarta Sans', sans-serif; background: var(--gray-50); color: var(--gray-800); font-size: 15px; line-height: 1.6; }
+  
+  /* ── NAV ── */
+  nav {
+    position: fixed; top: 0; left: 0; right: 0; height: var(--nav-h);
+    background: rgba(255,255,255,0.92); backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--gray-200); z-index: 100;
+    display: flex; align-items: center; padding: 0 24px; gap: 32px;
+  }
+  .nav-brand { display:flex; align-items:center; gap:10px; text-decoration:none; cursor:pointer; }
+  .nav-brand .logo { width:36px;height:36px;background:var(--brand);border-radius:10px;display:flex;align-items:center;justify-content:center; }
+  .nav-brand .logo svg { width:20px;height:20px;fill:white; }
+  .nav-brand span { font-weight:700; font-size:17px; color:var(--gray-900); letter-spacing:-0.3px; }
+  .nav-brand span em { font-style:normal; color:var(--brand); }
+  .nav-links { display:flex; gap:4px; margin-left:16px; }
+  .nav-links a { text-decoration:none; padding:6px 14px; border-radius:var(--radius-sm); font-size:14px; font-weight:500; color:var(--gray-600); cursor:pointer; transition:all .2s; }
+  .nav-links a:hover, .nav-links a.active { background:var(--brand-light); color:var(--brand); }
+  .nav-end { margin-left:auto; display:flex; gap:10px; align-items:center; }
+  .btn { display:inline-flex; align-items:center; gap:8px; padding:9px 18px; border-radius:var(--radius-sm); font-size:14px; font-weight:600; cursor:pointer; transition:all .18s; border:none; font-family:inherit; text-decoration:none; }
+  .btn-ghost { background:transparent; color:var(--gray-700); border:1px solid var(--gray-200); }
+  .btn-ghost:hover { background:var(--gray-100); border-color:var(--gray-300); }
+  .btn-primary { background:var(--brand); color:white; box-shadow:0 2px 8px rgba(59,130,246,.3); }
+  .btn-primary:hover { background:var(--brand-dark); transform:translateY(-1px); box-shadow:0 4px 14px rgba(59,130,246,.4); }
+  .btn-outline { background:white; color:var(--brand); border:1.5px solid var(--brand); }
+  .btn-outline:hover { background:var(--brand-light); }
+  .btn-success { background:var(--success); color:white; }
+  .btn-success:hover { background:#059669; }
+  .btn-lg { padding:13px 28px; font-size:15px; border-radius:var(--radius-md); }
+  .btn-sm { padding:6px 12px; font-size:13px; }
+
+  /* ── PAGES ── */
+  .page { display:none; padding-top:var(--nav-h); min-height:100vh; }
+  .page.active { display:block; }
+
+  /* ── HOME ── */
+  .hero {
+    background: linear-gradient(135deg, #EFF6FF 0%, #E0F2FE 40%, #F0FDF4 100%);
+    padding: 80px 24px 60px; text-align:center; position:relative; overflow:hidden;
+  }
+  .hero::before {
+    content:''; position:absolute; top:-80px; right:-80px;
+    width:400px; height:400px; background:radial-gradient(circle, rgba(59,130,246,.12) 0%, transparent 70%);
+    border-radius:50%; pointer-events:none;
+  }
+  .hero::after {
+    content:''; position:absolute; bottom:-60px; left:-60px;
+    width:300px; height:300px; background:radial-gradient(circle, rgba(6,182,212,.10) 0%, transparent 70%);
+    border-radius:50%; pointer-events:none;
+  }
+  .hero-badge { display:inline-flex; align-items:center; gap:6px; background:white; border:1px solid var(--brand-mid); color:var(--brand); padding:5px 14px; border-radius:100px; font-size:13px; font-weight:600; margin-bottom:24px; }
+  .hero-badge .dot { width:7px;height:7px;background:var(--success);border-radius:50%; }
+  .hero h1 { font-family:'Fraunces',serif; font-size:clamp(36px,6vw,60px); font-weight:600; line-height:1.1; color:var(--gray-900); margin-bottom:18px; }
+  .hero h1 em { font-style:italic; color:var(--brand); }
+  .hero p { font-size:17px; color:var(--gray-500); max-width:540px; margin:0 auto 40px; line-height:1.7; }
+  
+  .search-card {
+    background:white; border-radius:var(--radius-xl); box-shadow:var(--shadow-lg);
+    padding:28px; max-width:780px; margin:0 auto 20px;
+    border:1px solid var(--gray-200);
+  }
+  .search-grid { display:grid; grid-template-columns:1fr 1fr 1fr auto; gap:12px; align-items:end; }
+  @media(max-width:680px){ .search-grid { grid-template-columns:1fr; } }
+  .field { display:flex; flex-direction:column; gap:6px; }
+  .field label { font-size:12px; font-weight:600; color:var(--gray-500); text-transform:uppercase; letter-spacing:.6px; }
+  .field input, .field select {
+    border:1.5px solid var(--gray-200); border-radius:var(--radius-sm);
+    padding:10px 14px; font-size:14px; font-family:inherit; color:var(--gray-800);
+    background:var(--gray-50); transition:border-color .2s;
+  }
+  .field input:focus, .field select:focus { outline:none; border-color:var(--brand); background:white; }
+  .divider-or { display:flex;align-items:center;gap:16px;max-width:780px;margin:0 auto 24px;color:var(--gray-400);font-size:13px; }
+  .divider-or::before,.divider-or::after{content:'';flex:1;height:1px;background:var(--gray-200);}
+  .quick-features { display:flex; justify-content:center; gap:32px; flex-wrap:wrap; max-width:700px; margin:0 auto; }
+  .quick-feat { display:flex; align-items:center; gap:8px; font-size:13px; color:var(--gray-500); font-weight:500; }
+  .quick-feat .icon { font-size:18px; }
+
+  .section { padding:60px 24px; max-width:1200px; margin:0 auto; }
+  .section-header { display:flex; align-items:flex-end; justify-content:space-between; margin-bottom:32px; }
+  .section-title { font-family:'Fraunces',serif; font-size:30px; font-weight:600; color:var(--gray-900); line-height:1.2; }
+  .section-title span { color:var(--brand); }
+  .see-all { font-size:14px; color:var(--brand); font-weight:600; cursor:pointer; text-decoration:none; }
+  .see-all:hover { text-decoration:underline; }
+  
+  .cards-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(280px, 1fr)); gap:20px; }
+  
+  .boarding-card {
+    background:white; border-radius:var(--radius-lg); overflow:hidden;
+    box-shadow:var(--shadow-sm); border:1px solid var(--gray-100);
+    transition:all .25s; cursor:pointer;
+  }
+  .boarding-card:hover { box-shadow:var(--shadow-md); transform:translateY(-3px); border-color:var(--brand-mid); }
+  .card-img { height:180px; position:relative; overflow:hidden; }
+  .card-img .img-bg { width:100%;height:100%;object-fit:cover; }
+  .card-img-placeholder { width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:48px; }
+  .card-badges { position:absolute; top:10px; left:10px; display:flex; gap:6px; }
+  .badge { padding:3px 10px; border-radius:100px; font-size:11px; font-weight:700; letter-spacing:.3px; }
+  .badge-available { background:#D1FAE5; color:#065F46; }
+  .badge-soon { background:#FEF3C7; color:#92400E; }
+  .badge-verified { background:#EFF6FF; color:#1E40AF; }
+  .badge-group { background:#F3E8FF; color:#5B21B6; }
+  .fav-btn { position:absolute; top:10px; right:10px; width:32px;height:32px;background:white;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:var(--shadow-sm);border:none;font-size:16px;transition:all .2s; }
+  .fav-btn:hover { transform:scale(1.15); }
+  .fav-btn.active { color:#EF4444; }
+  .card-body { padding:16px; }
+  .card-title { font-weight:700; font-size:15px; color:var(--gray-900); margin-bottom:4px; }
+  .card-location { font-size:13px; color:var(--gray-500); display:flex;align-items:center;gap:4px; margin-bottom:10px; }
+  .card-meta { display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; }
+  .card-price { font-size:20px; font-weight:800; color:var(--brand); }
+  .card-price span { font-size:12px; font-weight:500; color:var(--gray-400); }
+  .card-dist { font-size:12px; color:var(--gray-500); background:var(--gray-100); padding:3px 8px; border-radius:6px; }
+  .card-tags { display:flex; flex-wrap:wrap; gap:5px; }
+  .tag { font-size:11px; padding:3px 8px; border-radius:6px; background:var(--gray-100); color:var(--gray-600); font-weight:500; }
+
+  /* Vacancy-highlight banner */
+  .vacancy-banner {
+    background:linear-gradient(135deg, #1D4ED8, #0EA5E9);
+    border-radius:var(--radius-xl); padding:40px 48px; margin:0 24px;
+    display:flex; align-items:center; justify-content:space-between; gap:24px;
+    color:white; position:relative; overflow:hidden; max-width:1152px; margin:0 auto 60px;
+  }
+  .vacancy-banner::after { content:'🏠'; position:absolute;right:48px;bottom:-10px;font-size:90px;opacity:.18; }
+  .vacancy-banner h2 { font-family:'Fraunces',serif;font-size:26px;font-weight:600;margin-bottom:8px; }
+  .vacancy-banner p { opacity:.85;font-size:15px; }
+
+  /* Stats row */
+  .stats-row { display:flex; gap:0; border-radius:var(--radius-lg); overflow:hidden; border:1px solid var(--gray-200); background:white; max-width:700px; margin:0 auto 60px; }
+  .stat-item { flex:1; text-align:center; padding:24px 16px; border-right:1px solid var(--gray-200); }
+  .stat-item:last-child { border-right:none; }
+  .stat-num { font-size:28px; font-weight:800; color:var(--brand); display:block; }
+  .stat-label { font-size:13px; color:var(--gray-500); font-weight:500; margin-top:2px; }
+
+  /* ── SEARCH RESULTS ── */
+  .results-layout { display:grid; grid-template-columns:280px 1fr; gap:24px; padding:24px; max-width:1200px; margin:0 auto; }
+  @media(max-width:768px){ .results-layout { grid-template-columns:1fr; } }
+  .filters-panel { background:white; border-radius:var(--radius-lg); border:1px solid var(--gray-200); padding:20px; height:fit-content; position:sticky; top:80px; }
+  .filters-panel h3 { font-weight:700; font-size:16px; margin-bottom:20px; color:var(--gray-800); }
+  .filter-group { margin-bottom:20px; padding-bottom:20px; border-bottom:1px solid var(--gray-100); }
+  .filter-group:last-child { border-bottom:none; margin-bottom:0; padding-bottom:0; }
+  .filter-group h4 { font-size:13px; font-weight:700; color:var(--gray-500); text-transform:uppercase; letter-spacing:.5px; margin-bottom:12px; }
+  .range-row { display:flex; justify-content:space-between; font-size:13px; color:var(--gray-500); margin-bottom:8px; }
+  .range-row strong { color:var(--gray-800); font-weight:700; }
+  input[type=range] { width:100%; accent-color:var(--brand); }
+  .check-list { display:flex; flex-direction:column; gap:9px; }
+  .check-item { display:flex; align-items:center; gap:10px; font-size:14px; color:var(--gray-700); cursor:pointer; }
+  .check-item input[type=checkbox] { width:16px;height:16px;accent-color:var(--brand); cursor:pointer; }
+  .radio-list { display:flex; flex-direction:column; gap:8px; }
+  .radio-item { display:flex;align-items:center;gap:10px;font-size:14px;color:var(--gray-700);cursor:pointer; }
+  .radio-item input[type=radio] { width:16px;height:16px;accent-color:var(--brand);cursor:pointer; }
+  
+  .results-main {}
+  .results-toolbar { display:flex; align-items:center; justify-content:space-between; margin-bottom:20px; flex-wrap:wrap; gap:12px; }
+  .results-count { font-size:15px; color:var(--gray-600); }
+  .results-count strong { color:var(--gray-900); font-weight:700; }
+  .sort-select { border:1.5px solid var(--gray-200); border-radius:var(--radius-sm); padding:8px 14px; font-size:14px; font-family:inherit; background:white; color:var(--gray-700); cursor:pointer; }
+  .results-list { display:flex; flex-direction:column; gap:16px; }
+  
+  .result-card { background:white; border-radius:var(--radius-lg); border:1px solid var(--gray-200); display:flex; overflow:hidden; box-shadow:var(--shadow-sm); transition:all .2s; cursor:pointer; }
+  .result-card:hover { box-shadow:var(--shadow-md); border-color:var(--brand-mid); }
+  .result-img { width:200px; flex-shrink:0; position:relative; }
+  @media(max-width:520px){ .result-img { width:120px; } }
+  .result-img-placeholder { width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:44px; }
+  .result-body { flex:1; padding:16px 20px; display:flex; flex-direction:column; justify-content:space-between; }
+  .result-header { display:flex; justify-content:space-between; align-items:flex-start; gap:12px; margin-bottom:8px; }
+  .result-title { font-weight:700; font-size:16px; color:var(--gray-900); }
+  .result-price { font-size:22px; font-weight:800; color:var(--brand); white-space:nowrap; }
+  .result-price small { font-size:12px; font-weight:400; color:var(--gray-400); }
+  .result-loc { font-size:13px; color:var(--gray-500); margin-bottom:10px; }
+  .result-tags { display:flex; flex-wrap:wrap; gap:5px; margin-bottom:12px; }
+  .result-footer { display:flex; align-items:center; justify-content:space-between; }
+
+  /* ── DETAILS ── */
+  .detail-wrap { max-width:1100px; margin:0 auto; padding:28px 24px; }
+  .gallery { display:grid; grid-template-columns:2fr 1fr 1fr; grid-template-rows:200px 200px; gap:8px; border-radius:var(--radius-xl); overflow:hidden; margin-bottom:32px; }
+  .gallery-main { grid-row:1/3; font-size:60px; }
+  .gallery-thumb { font-size:36px; }
+  .gallery-cell { display:flex;align-items:center;justify-content:center;background:var(--gray-100);position:relative; }
+  .gallery-cell.has-more::after { content:'+ more'; position:absolute;bottom:12px;right:12px;background:rgba(0,0,0,.55);color:white;padding:4px 10px;border-radius:6px;font-size:12px;font-weight:600; }
+  .detail-layout { display:grid; grid-template-columns:1fr 340px; gap:28px; }
+  @media(max-width:768px){ .detail-layout { grid-template-columns:1fr; } }
+  .detail-content {}
+  .detail-title { font-family:'Fraunces',serif;font-size:32px;font-weight:600;color:var(--gray-900);margin-bottom:8px; }
+  .detail-meta { display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin-bottom:20px;font-size:14px;color:var(--gray-500); }
+  .detail-meta span { display:flex;align-items:center;gap:5px; }
+  .rating-stars { color:#F59E0B; font-size:14px; }
+  .facilities-grid { display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px;margin:20px 0; }
+  .facility-chip { display:flex;align-items:center;gap:8px;padding:10px 14px;background:var(--gray-50);border:1px solid var(--gray-200);border-radius:var(--radius-sm);font-size:13px;font-weight:500;color:var(--gray-700); }
+  .facility-icon { font-size:18px; }
+  .divider { height:1px;background:var(--gray-200);margin:24px 0; }
+  .room-types-grid { display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px;margin-top:16px; }
+  .room-type-card { border:1.5px solid var(--gray-200);border-radius:var(--radius-md);padding:16px;cursor:pointer;transition:all .18s; }
+  .room-type-card:hover,.room-type-card.selected { border-color:var(--brand);background:var(--brand-light); }
+  .room-type-card .type-icon { font-size:24px;margin-bottom:8px; }
+  .room-type-card .type-name { font-weight:600;font-size:14px;color:var(--gray-800); }
+  .room-type-card .type-price { font-size:18px;font-weight:800;color:var(--brand);margin-top:4px; }
+  
+  .booking-panel { background:white;border:1px solid var(--gray-200);border-radius:var(--radius-xl);padding:24px;position:sticky;top:80px;box-shadow:var(--shadow-md); }
+  .booking-panel .price-big { font-size:30px;font-weight:800;color:var(--brand);margin-bottom:4px; }
+  .booking-panel .price-sub { font-size:13px;color:var(--gray-400);margin-bottom:20px; }
+  .avail-badge { display:flex;align-items:center;gap:8px;background:#D1FAE5;color:#065F46;padding:10px 14px;border-radius:var(--radius-sm);font-size:13px;font-weight:600;margin-bottom:16px; }
+  .avail-badge .dot { width:8px;height:8px;background:#10B981;border-radius:50%; }
+  .panel-btns { display:flex;flex-direction:column;gap:10px;margin-top:16px; }
+  
+  .reviews-section { margin-top:32px; }
+  .review-card { background:var(--gray-50);border-radius:var(--radius-md);padding:16px;margin-bottom:14px; }
+  .review-header { display:flex;align-items:center;gap:12px;margin-bottom:8px; }
+  .reviewer-avatar { width:38px;height:38px;border-radius:50%;background:var(--brand-light);color:var(--brand);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px; }
+  .reviewer-info .name { font-weight:600;font-size:14px; }
+  .reviewer-info .date { font-size:12px;color:var(--gray-400); }
+  .review-stars { margin-left:auto;color:#F59E0B;font-size:13px; }
+  .review-text { font-size:14px;color:var(--gray-600);line-height:1.6; }
+
+  /* ── BOOKING PAGE ── */
+  .booking-page-wrap { max-width:900px;margin:0 auto;padding:32px 24px; }
+  .booking-page-wrap h1 { font-family:'Fraunces',serif;font-size:28px;font-weight:600;margin-bottom:28px; }
+  .booking-layout { display:grid;grid-template-columns:1fr 320px;gap:24px; }
+  @media(max-width:700px){ .booking-layout { grid-template-columns:1fr; } }
+  .booking-form-section { background:white;border-radius:var(--radius-lg);border:1px solid var(--gray-200);padding:24px; }
+  .booking-form-section h3 { font-weight:700;font-size:17px;margin-bottom:18px;padding-bottom:14px;border-bottom:1px solid var(--gray-100); }
+  .form-row { display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:16px; }
+  @media(max-width:480px){ .form-row { grid-template-columns:1fr; } }
+  .payment-methods { display:flex;flex-direction:column;gap:10px;margin-bottom:20px; }
+  .payment-option { display:flex;align-items:center;gap:12px;padding:14px;border:1.5px solid var(--gray-200);border-radius:var(--radius-md);cursor:pointer;transition:border-color .18s; }
+  .payment-option:hover,.payment-option.selected { border-color:var(--brand);background:var(--brand-light); }
+  .payment-option input { width:16px;height:16px;accent-color:var(--brand); }
+  .payment-option .method-label { font-weight:600;font-size:14px; }
+  .payment-option .method-sub { font-size:12px;color:var(--gray-400); }
+  .payment-icon { font-size:24px;margin-right:4px; }
+  
+  .booking-summary { background:white;border:1px solid var(--gray-200);border-radius:var(--radius-lg);padding:20px;height:fit-content; }
+  .booking-summary h3 { font-weight:700;font-size:16px;margin-bottom:16px; }
+  .summary-item { display:flex;justify-content:space-between;font-size:14px;margin-bottom:10px;color:var(--gray-600); }
+  .summary-total { display:flex;justify-content:space-between;font-size:16px;font-weight:800;color:var(--gray-900);border-top:1px solid var(--gray-200);padding-top:12px;margin-top:4px; }
+
+  /* ── OWNER DASHBOARD ── */
+  .dashboard-wrap { max-width:1100px;margin:0 auto;padding:28px 24px; }
+  .dashboard-header { display:flex;align-items:center;justify-content:space-between;margin-bottom:28px;flex-wrap:wrap;gap:16px; }
+  .dashboard-header h1 { font-family:'Fraunces',serif;font-size:26px;font-weight:600; }
+  .dashboard-grid { display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:32px; }
+  @media(max-width:700px){ .dashboard-grid { grid-template-columns:repeat(2,1fr); } }
+  .dash-stat { background:white;border:1px solid var(--gray-200);border-radius:var(--radius-lg);padding:20px; }
+  .dash-stat .stat-icon { font-size:24px;margin-bottom:10px; }
+  .dash-stat .stat-val { font-size:28px;font-weight:800;color:var(--gray-900); }
+  .dash-stat .stat-desc { font-size:13px;color:var(--gray-500);margin-top:2px; }
+  .dash-main { display:grid;grid-template-columns:1fr 380px;gap:24px; }
+  @media(max-width:768px){ .dash-main { grid-template-columns:1fr; } }
+  .listing-form { background:white;border:1px solid var(--gray-200);border-radius:var(--radius-lg);padding:24px; }
+  .listing-form h3 { font-weight:700;font-size:17px;margin-bottom:20px; }
+  .form-group { margin-bottom:16px; }
+  .form-group label { display:block;font-size:13px;font-weight:600;color:var(--gray-500);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px; }
+  .form-group input,.form-group select,.form-group textarea { width:100%;border:1.5px solid var(--gray-200);border-radius:var(--radius-sm);padding:10px 14px;font-size:14px;font-family:inherit;color:var(--gray-800);background:white;transition:border-color .2s; }
+  .form-group input:focus,.form-group select:focus,.form-group textarea:focus { outline:none;border-color:var(--brand); }
+  .form-group textarea { height:80px;resize:vertical; }
+  .upload-zone { border:2px dashed var(--gray-300);border-radius:var(--radius-md);padding:32px;text-align:center;cursor:pointer;transition:all .2s; }
+  .upload-zone:hover { border-color:var(--brand);background:var(--brand-light); }
+  .upload-zone .upload-icon { font-size:32px;margin-bottom:8px; }
+  .upload-zone p { font-size:14px;color:var(--gray-500); }
+  .toggle-row { display:flex;align-items:center;justify-content:space-between;padding:14px 0;border-bottom:1px solid var(--gray-100); }
+  .toggle-row .toggle-label { font-weight:600;font-size:14px; }
+  .toggle-row .toggle-sub { font-size:12px;color:var(--gray-400);margin-top:2px; }
+  .toggle { width:44px;height:24px;background:var(--gray-300);border-radius:100px;position:relative;cursor:pointer;transition:background .2s;border:none; }
+  .toggle.on { background:var(--brand); }
+  .toggle::after { content:'';position:absolute;top:3px;left:3px;width:18px;height:18px;background:white;border-radius:50%;transition:transform .2s; }
+  .toggle.on::after { transform:translateX(20px); }
+  .dash-side {}
+  .bookings-panel { background:white;border:1px solid var(--gray-200);border-radius:var(--radius-lg);padding:20px;margin-bottom:20px; }
+  .bookings-panel h3 { font-weight:700;font-size:16px;margin-bottom:16px; }
+  .booking-item { display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--gray-100); }
+  .booking-item:last-child { border-bottom:none; }
+  .booking-avatar { width:36px;height:36px;border-radius:50%;background:var(--brand-light);color:var(--brand);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;flex-shrink:0; }
+  .booking-info .name { font-weight:600;font-size:14px; }
+  .booking-info .date { font-size:12px;color:var(--gray-400); }
+  .booking-status { margin-left:auto;padding:3px 10px;border-radius:100px;font-size:11px;font-weight:700; }
+  .status-confirmed { background:#D1FAE5;color:#065F46; }
+  .status-pending { background:#FEF3C7;color:#92400E; }
+  .status-upcoming { background:#EFF6FF;color:#1E40AF; }
+
+  /* ── REVIEWS PAGE ── */
+  .reviews-wrap { max-width:800px;margin:0 auto;padding:32px 24px; }
+  .reviews-wrap h1 { font-family:'Fraunces',serif;font-size:28px;font-weight:600;margin-bottom:8px; }
+  .overall-rating { background:white;border:1px solid var(--gray-200);border-radius:var(--radius-xl);padding:28px;margin-bottom:28px;display:flex;gap:32px;align-items:center; }
+  .rating-big { text-align:center;flex-shrink:0; }
+  .rating-big .num { font-size:56px;font-weight:800;color:var(--gray-900);line-height:1; }
+  .rating-big .stars { font-size:20px;color:#F59E0B;margin:6px 0; }
+  .rating-big .count { font-size:13px;color:var(--gray-400); }
+  .rating-bars { flex:1; }
+  .rating-bar-row { display:flex;align-items:center;gap:10px;margin-bottom:8px;font-size:13px; }
+  .rating-bar-row .bar-track { flex:1;height:7px;background:var(--gray-200);border-radius:100px;overflow:hidden; }
+  .rating-bar-row .bar-fill { height:100%;background:#F59E0B;border-radius:100px; }
+  .reviews-list { display:flex;flex-direction:column;gap:16px; }
+  .review-card-full { background:white;border:1px solid var(--gray-200);border-radius:var(--radius-lg);padding:20px; }
+  .write-review { background:var(--brand-light);border:1.5px dashed var(--brand-mid);border-radius:var(--radius-lg);padding:20px;text-align:center;cursor:pointer;margin-bottom:24px; }
+  .write-review p { color:var(--brand);font-weight:600;font-size:15px; }
+
+  /* ── FOOTER ── */
+  footer { background:var(--gray-900);color:var(--gray-400);text-align:center;padding:28px 24px;font-size:13px;margin-top:60px; }
+  footer strong { color:white; }
+
+  /* ── BREADCRUMB ── */
+  .breadcrumb { display:flex;align-items:center;gap:8px;font-size:13px;color:var(--gray-400);margin-bottom:20px;flex-wrap:wrap; }
+  .breadcrumb a { color:var(--brand);cursor:pointer;text-decoration:none; }
+  .breadcrumb a:hover { text-decoration:underline; }
+  .breadcrumb .sep { color:var(--gray-300); }
+
+  /* Utility */
+  .text-center { text-align:center; }
+  .mt-4 { margin-top:16px; }
+  .mt-8 { margin-top:32px; }
+  .flex-center { display:flex;align-items:center;justify-content:center; }
+  .gap-8 { gap:8px; }
+  .hidden { display:none; }
+  .mobile-filter-btn { display:none;margin-bottom:16px; }
+  @media(max-width:768px){ .mobile-filter-btn { display:block; } }
+
+  /* ── AUTH PAGES ── */
+  .auth-page {
+    min-height: 100vh; padding-top: var(--nav-h);
+    background: linear-gradient(135deg, #EFF6FF 0%, #E0F2FE 50%, #F0FDF4 100%);
+    display: flex; align-items: center; justify-content: center; padding: 80px 24px 40px;
+  }
+  .auth-container { width: 100%; max-width: 480px; }
+  .auth-card {
+    background: white; border-radius: var(--radius-xl); border: 1px solid var(--gray-200);
+    box-shadow: var(--shadow-lg); overflow: hidden;
+  }
+  .auth-header {
+    background: linear-gradient(135deg, #1D4ED8, #0EA5E9);
+    padding: 32px 32px 28px; text-align: center; color: white;
+  }
+  .auth-header .auth-logo { width:52px;height:52px;background:rgba(255,255,255,.2);border-radius:14px;display:flex;align-items:center;justify-content:center;margin:0 auto 14px; }
+  .auth-header .auth-logo svg { width:28px;height:28px;fill:white; }
+  .auth-header h2 { font-family:'Fraunces',serif; font-size:24px; font-weight:600; margin-bottom:6px; }
+  .auth-header p { font-size:14px; opacity:.85; }
+  .auth-role-tabs { display:flex; background:rgba(255,255,255,.15); border-radius:var(--radius-sm); padding:4px; margin-top:20px; gap:4px; }
+  .auth-role-tab { flex:1; padding:8px; border-radius:6px; font-size:13px; font-weight:600; cursor:pointer; border:none; background:transparent; color:rgba(255,255,255,.7); font-family:inherit; transition:all .2s; }
+  .auth-role-tab.active { background:white; color:var(--brand); }
+  .auth-body { padding:28px 32px 32px; }
+  .auth-field { margin-bottom:18px; }
+  .auth-field label { display:block; font-size:13px; font-weight:600; color:var(--gray-600); margin-bottom:7px; }
+  .auth-field input, .auth-field select {
+    width:100%; border:1.5px solid var(--gray-200); border-radius:var(--radius-sm);
+    padding:11px 14px; font-size:14px; font-family:inherit; color:var(--gray-800);
+    background:var(--gray-50); transition:border-color .2s;
+  }
+  .auth-field input:focus, .auth-field select:focus { outline:none; border-color:var(--brand); background:white; }
+  .auth-field .input-icon-wrap { position:relative; }
+  .auth-field .input-icon-wrap input { padding-left:40px; }
+  .auth-field .input-icon { position:absolute;left:13px;top:50%;transform:translateY(-50%);font-size:16px;color:var(--gray-400); }
+  .auth-row { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+  @media(max-width:420px){ .auth-row { grid-template-columns:1fr; } }
+  .auth-divider { display:flex;align-items:center;gap:14px;margin:20px 0;font-size:12px;color:var(--gray-400); }
+  .auth-divider::before,.auth-divider::after { content:'';flex:1;height:1px;background:var(--gray-200); }
+  .auth-social { display:flex; gap:10px; margin-bottom:4px; }
+  .auth-social-btn { flex:1;display:flex;align-items:center;justify-content:center;gap:8px;padding:10px;border:1.5px solid var(--gray-200);border-radius:var(--radius-sm);font-size:13px;font-weight:600;cursor:pointer;background:white;font-family:inherit;color:var(--gray-700);transition:all .2s; }
+  .auth-social-btn:hover { border-color:var(--gray-300); background:var(--gray-50); }
+  .auth-footer { text-align:center;margin-top:22px;font-size:13px;color:var(--gray-500); }
+  .auth-footer a { color:var(--brand);font-weight:600;cursor:pointer;text-decoration:none; }
+  .auth-footer a:hover { text-decoration:underline; }
+  .auth-check { display:flex;align-items:flex-start;gap:10px;font-size:13px;color:var(--gray-600);margin-bottom:18px;cursor:pointer; }
+  .auth-check input { width:15px;height:15px;margin-top:1px;accent-color:var(--brand);flex-shrink:0; }
+  .password-hint { font-size:11px;color:var(--gray-400);margin-top:5px; }
+  .owner-extras { background:var(--brand-light);border:1px solid var(--brand-mid);border-radius:var(--radius-md);padding:16px;margin-bottom:18px; }
+  .owner-extras .oe-title { font-size:13px;font-weight:700;color:var(--brand);margin-bottom:10px; }
+  .forgot-link { text-align:right;margin-top:-10px;margin-bottom:18px; }
+  .forgot-link a { font-size:13px;color:var(--brand);cursor:pointer;font-weight:600; }
+</style>
+</head>
+<body>
+
+<!-- ════════════ NAV ════════════ -->
+<nav>
+  <div class="nav-brand" onclick="showPage('home')">
+    <div class="logo">
+      <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+    </div>
+    <span>Smart<em>Boarding</em></span>
+  </div>
+  <div class="nav-links">
+    <a onclick="showPage('home')" id="nav-home" class="active">Home</a>
+    <a onclick="showPage('results')" id="nav-results">Search</a>
+    <a onclick="showPage('dashboard')" id="nav-dashboard">Owner Portal</a>
+  </div>
+  <div class="nav-end">
+    <button class="btn btn-ghost" onclick="showPage('dashboard')">List Property</button>
+    <button class="btn btn-ghost" onclick="showPage('login')">Sign In</button>
+    <button class="btn btn-primary" onclick="showPage('signup')">Sign Up</button>
+  </div>
+</nav>
+
+<!-- ════════════ HOME PAGE ════════════ -->
+<div class="page active" id="page-home">
+  <!-- Hero -->
+  <section class="hero">
+    <div class="hero-badge"><span class="dot"></span> 1,240+ Verified Listings Near Campus</div>
+    <h1>Find Your Perfect<br><em>Home Away</em> from Home</h1>
+    <p>Discover affordable, verified boarding places near your university. Book now or reserve for future semester.</p>
+    <div class="search-card">
+      <div class="search-grid">
+        <div class="field">
+          <label>📍 Location / University</label>
+          <input type="text" placeholder="e.g. University of Colombo">
+        </div>
+        <div class="field">
+          <label>💰 Max Monthly Price</label>
+          <select>
+            <option>Under LKR 15,000</option>
+            <option>LKR 15,000 – 25,000</option>
+            <option>LKR 25,000 – 40,000</option>
+            <option>Any Price</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>🛏 Room Type</label>
+          <select>
+            <option>Any Type</option>
+            <option>Single Room</option>
+            <option>Shared Room</option>
+            <option>Studio</option>
+          </select>
+        </div>
+        <button class="btn btn-primary btn-lg" onclick="showPage('results')" style="white-space:nowrap">
+          🔍 Search
+        </button>
+      </div>
+    </div>
+    <div class="divider-or">or browse by</div>
+    <div class="quick-features">
+      <div class="quick-feat"><span class="icon">⚡</span> Available Now</div>
+      <div class="quick-feat"><span class="icon">📅</span> Future Vacancies</div>
+      <div class="quick-feat"><span class="icon">👥</span> Best for Groups</div>
+      <div class="quick-feat"><span class="icon">✅</span> Verified Only</div>
+    </div>
+  </section>
+
+  <!-- Stats -->
+  <div style="padding:40px 24px 0;max-width:700px;margin:0 auto;">
+    <div class="stats-row">
+      <div class="stat-item"><span class="stat-num">1,240+</span><div class="stat-label">Active Listings</div></div>
+      <div class="stat-item"><span class="stat-num">8,500+</span><div class="stat-label">Students Housed</div></div>
+      <div class="stat-item"><span class="stat-num">320+</span><div class="stat-label">Verified Owners</div></div>
+      <div class="stat-item"><span class="stat-num">4.7★</span><div class="stat-label">Avg. Rating</div></div>
+    </div>
+  </div>
+
+  <!-- Vacancy Banner -->
+  <div style="padding:40px 24px 0;max-width:1200px;margin:0 auto;">
+    <div class="vacancy-banner">
+      <div>
+        <h2>📅 Book Upcoming Vacancies</h2>
+        <p>Don't wait until semester starts. Reserve your room now for next intake and secure your place.</p>
+        <button class="btn btn-ghost" style="margin-top:16px;background:rgba(255,255,255,.15);color:white;border-color:rgba(255,255,255,.3)" onclick="showPage('results')">Browse Future Vacancies →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Featured Listings -->
+  <section class="section">
+    <div class="section-header">
+      <div>
+        <div style="font-size:13px;font-weight:600;color:var(--brand);text-transform:uppercase;letter-spacing:.6px;margin-bottom:6px;">🌟 Top Picks</div>
+        <div class="section-title">Featured <span>Boarding Places</span></div>
+      </div>
+      <a class="see-all" onclick="showPage('results')">View all →</a>
+    </div>
+    <div class="cards-grid">
+      <!-- Card 1 -->
+      <div class="boarding-card" onclick="showPage('detail')">
+        <div class="card-img" style="background:linear-gradient(135deg,#BFDBFE,#93C5FD);">
+          <div class="card-img-placeholder">🏘️</div>
+          <div class="card-badges">
+            <span class="badge badge-available">✓ Available Now</span>
+            <span class="badge badge-verified">✅ Verified</span>
+          </div>
+          <button class="fav-btn" onclick="event.stopPropagation();this.classList.toggle('active')">♡</button>
+        </div>
+        <div class="card-body">
+          <div class="card-title">Sunset View Boarding</div>
+          <div class="card-location">📍 Kandy Road, 0.8 km from UoC</div>
+          <div class="card-meta">
+            <div class="card-price">LKR 18,000<span>/mo</span></div>
+            <div class="card-dist">🚶 10 min</div>
+          </div>
+          <div class="card-tags">
+            <span class="tag">📶 WiFi</span><span class="tag">🍳 Kitchen</span><span class="tag">🚗 Parking</span><span class="tag badge-group" style="font-weight:700">👥 Groups</span>
+          </div>
+        </div>
+      </div>
+      <!-- Card 2 -->
+      <div class="boarding-card" onclick="showPage('detail')">
+        <div class="card-img" style="background:linear-gradient(135deg,#A7F3D0,#6EE7B7);">
+          <div class="card-img-placeholder">🏠</div>
+          <div class="card-badges">
+            <span class="badge badge-soon">📅 From May 2025</span>
+          </div>
+          <button class="fav-btn" onclick="event.stopPropagation();this.classList.toggle('active')">♡</button>
+        </div>
+        <div class="card-body">
+          <div class="card-title">Green Garden Residence</div>
+          <div class="card-location">📍 Havelock Town, 1.2 km from UoJ</div>
+          <div class="card-meta">
+            <div class="card-price">LKR 12,500<span>/mo</span></div>
+            <div class="card-dist">🚌 15 min</div>
+          </div>
+          <div class="card-tags">
+            <span class="tag">📶 WiFi</span><span class="tag">🛡 Security</span><span class="tag">🌿 Garden</span>
+          </div>
+        </div>
+      </div>
+      <!-- Card 3 -->
+      <div class="boarding-card" onclick="showPage('detail')">
+        <div class="card-img" style="background:linear-gradient(135deg,#FED7AA,#FCA5A5);">
+          <div class="card-img-placeholder">🏡</div>
+          <div class="card-badges">
+            <span class="badge badge-available">✓ Available Now</span>
+          </div>
+          <button class="fav-btn active" onclick="event.stopPropagation();this.classList.toggle('active')">♥</button>
+        </div>
+        <div class="card-body">
+          <div class="card-title">Mahaweli Heights</div>
+          <div class="card-location">📍 Peradeniya, 0.4 km from UoP</div>
+          <div class="card-meta">
+            <div class="card-price">LKR 22,000<span>/mo</span></div>
+            <div class="card-dist">🚶 5 min</div>
+          </div>
+          <div class="card-tags">
+            <span class="tag">📶 WiFi</span><span class="tag">🍳 Kitchen</span><span class="tag">🧺 Laundry</span><span class="tag">❄️ AC</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- How it works -->
+  <section style="background:white;padding:60px 24px;border-top:1px solid var(--gray-100);">
+    <div style="max-width:900px;margin:0 auto;text-align:center;">
+      <div style="font-size:13px;font-weight:600;color:var(--brand);text-transform:uppercase;letter-spacing:.6px;margin-bottom:10px;">Simple Process</div>
+      <div class="section-title" style="margin-bottom:40px;">How It <span>Works</span></div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:28px;">
+        <div>
+          <div style="width:56px;height:56px;background:var(--brand-light);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:24px;margin:0 auto 14px;">🔍</div>
+          <div style="font-weight:700;font-size:15px;margin-bottom:6px;">Search & Filter</div>
+          <div style="font-size:13px;color:var(--gray-500);">Find boarding near your university with smart filters</div>
+        </div>
+        <div>
+          <div style="width:56px;height:56px;background:#D1FAE5;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:24px;margin:0 auto 14px;">🏠</div>
+          <div style="font-weight:700;font-size:15px;margin-bottom:6px;">Compare Options</div>
+          <div style="font-size:13px;color:var(--gray-500);">View details, facilities, reviews and pricing</div>
+        </div>
+        <div>
+          <div style="width:56px;height:56px;background:#FEF3C7;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:24px;margin:0 auto 14px;">📅</div>
+          <div style="font-weight:700;font-size:15px;margin-bottom:6px;">Book or Reserve</div>
+          <div style="font-size:13px;color:var(--gray-500);">Book now or reserve a future vacancy with advance</div>
+        </div>
+        <div>
+          <div style="width:56px;height:56px;background:#F3E8FF;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:24px;margin:0 auto 14px;">✅</div>
+          <div style="font-weight:700;font-size:15px;margin-bottom:6px;">Move In</div>
+          <div style="font-size:13px;color:var(--gray-500);">Get confirmation and move in hassle-free</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <strong>Smart Boarding Finder</strong> — Helping students find their home away from home.<br>
+    <span style="margin-top:6px;display:block;">© 2025 SmartBoarding.lk · Privacy · Terms · Support</span>
+  </footer>
+</div>
+
+<!-- ════════════ SEARCH RESULTS PAGE ════════════ -->
+<div class="page" id="page-results">
+  <div style="background:white;border-bottom:1px solid var(--gray-200);padding:16px 24px;">
+    <div style="max-width:1200px;margin:0 auto;">
+      <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;">
+        <input type="text" value="University of Colombo" style="flex:1;min-width:200px;border:1.5px solid var(--gray-200);border-radius:var(--radius-sm);padding:10px 14px;font-size:14px;font-family:inherit;">
+        <select style="border:1.5px solid var(--gray-200);border-radius:var(--radius-sm);padding:10px 14px;font-size:14px;font-family:inherit;">
+          <option>Any Price</option><option>Under LKR 15,000</option><option>LKR 15–25k</option>
+        </select>
+        <select style="border:1.5px solid var(--gray-200);border-radius:var(--radius-sm);padding:10px 14px;font-size:14px;font-family:inherit;">
+          <option>Any Room</option><option>Single</option><option>Shared</option>
+        </select>
+        <button class="btn btn-primary">🔍 Search</button>
+      </div>
+    </div>
+  </div>
+  
+  <div class="results-layout">
+    <!-- Filters -->
+    <aside class="filters-panel">
+      <h3>🎛 Filters</h3>
+      <div class="filter-group">
+        <h4>Price Range (Monthly)</h4>
+        <div class="range-row"><span>LKR 5,000</span><strong id="price-display">LKR 30,000</strong></div>
+        <input type="range" min="5000" max="60000" value="30000" oninput="document.getElementById('price-display').textContent='LKR '+parseInt(this.value).toLocaleString()">
+      </div>
+      <div class="filter-group">
+        <h4>Distance to University</h4>
+        <div class="range-row"><span>0 km</span><strong id="dist-display">5 km</strong></div>
+        <input type="range" min="0" max="10" value="5" step="0.5" oninput="document.getElementById('dist-display').textContent=parseFloat(this.value).toFixed(1)+' km'">
+      </div>
+      <div class="filter-group">
+        <h4>Room Type</h4>
+        <div class="radio-list">
+          <label class="radio-item"><input type="radio" name="room" checked> Any Type</label>
+          <label class="radio-item"><input type="radio" name="room"> Single Room</label>
+          <label class="radio-item"><input type="radio" name="room"> Shared Room (2 pax)</label>
+          <label class="radio-item"><input type="radio" name="room"> Shared Room (3+ pax)</label>
+          <label class="radio-item"><input type="radio" name="room"> Studio / Annex</label>
+        </div>
+      </div>
+      <div class="filter-group">
+        <h4>For</h4>
+        <div class="radio-list">
+          <label class="radio-item"><input type="radio" name="gender" checked> Any</label>
+          <label class="radio-item"><input type="radio" name="gender"> Ladies Only</label>
+          <label class="radio-item"><input type="radio" name="gender"> Gents Only</label>
+          <label class="radio-item"><input type="radio" name="gender"> Mixed</label>
+        </div>
+      </div>
+      <div class="filter-group">
+        <h4>Facilities</h4>
+        <div class="check-list">
+          <label class="check-item"><input type="checkbox" checked> 📶 WiFi</label>
+          <label class="check-item"><input type="checkbox"> 🍳 Cooking Allowed</label>
+          <label class="check-item"><input type="checkbox"> 🚗 Parking</label>
+          <label class="check-item"><input type="checkbox"> 🧺 Laundry</label>
+          <label class="check-item"><input type="checkbox"> ❄️ Air Conditioning</label>
+          <label class="check-item"><input type="checkbox"> 🛡 24h Security</label>
+          <label class="check-item"><input type="checkbox"> 🍽 Meals Included</label>
+          <label class="check-item"><input type="checkbox"> 📺 TV Room</label>
+        </div>
+      </div>
+      <div class="filter-group">
+        <h4>Availability Slots</h4>
+        <div class="radio-list">
+          <label class="radio-item"><input type="radio" name="avail" checked> Any</label>
+          <label class="radio-item"><input type="radio" name="avail"> Available Now</label>
+          <label class="radio-item"><input type="radio" name="avail"> Future (next 3 months)</label>
+          <label class="radio-item"><input type="radio" name="avail"> 3+ Slots (Groups)</label>
+        </div>
+      </div>
+      <div class="filter-group">
+        <h4>Trust Level</h4>
+        <div class="check-list">
+          <label class="check-item"><input type="checkbox"> ✅ Verified Owner Only</label>
+        </div>
+      </div>
+      <button class="btn btn-outline" style="width:100%;margin-top:8px;justify-content:center;">Reset Filters</button>
+    </aside>
+
+    <!-- Results -->
+    <main class="results-main">
+      <div class="results-toolbar">
+        <div class="results-count"><strong>24 boardings</strong> found near University of Colombo</div>
+        <select class="sort-select">
+          <option>Sort: Best Match</option>
+          <option>Price: Low to High</option>
+          <option>Price: High to Low</option>
+          <option>Distance: Nearest</option>
+          <option>Rating: Highest</option>
+        </select>
+      </div>
+      <div class="results-list">
+        <!-- Result 1 -->
+        <div class="result-card" onclick="showPage('detail')">
+          <div class="result-img" style="background:linear-gradient(135deg,#BFDBFE,#93C5FD);">
+            <div class="result-img-placeholder">🏘️</div>
+          </div>
+          <div class="result-body">
+            <div>
+              <div class="result-header">
+                <div>
+                  <div style="display:flex;gap:6px;margin-bottom:6px;">
+                    <span class="badge badge-available">✓ Available Now</span>
+                    <span class="badge badge-verified">✅ Verified</span>
+                    <span class="badge badge-group">👥 Groups OK</span>
+                  </div>
+                  <div class="result-title">Sunset View Boarding House</div>
+                </div>
+                <div class="result-price">LKR 18,000<br><small>/month</small></div>
+              </div>
+              <div class="result-loc">📍 Kandy Road · 0.8 km from university · 🚶 10 min walk</div>
+              <div class="result-tags">
+                <span class="tag">📶 WiFi</span><span class="tag">🍳 Kitchen</span><span class="tag">🚗 Parking</span><span class="tag">🧺 Laundry</span><span class="tag">🛡 Security</span>
+              </div>
+            </div>
+            <div class="result-footer">
+              <div style="font-size:13px;color:var(--gray-400);">⭐ 4.8 · 32 reviews · 3 slots left</div>
+              <div style="display:flex;gap:8px;">
+                <button class="btn btn-ghost btn-sm" onclick="event.stopPropagation()">♡ Save</button>
+                <button class="btn btn-primary btn-sm" onclick="event.stopPropagation();showPage('detail')">View Details</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- Result 2 -->
+        <div class="result-card" onclick="showPage('detail')">
+          <div class="result-img" style="background:linear-gradient(135deg,#A7F3D0,#6EE7B7);">
+            <div class="result-img-placeholder">🏠</div>
+          </div>
+          <div class="result-body">
+            <div>
+              <div class="result-header">
+                <div>
+                  <div style="display:flex;gap:6px;margin-bottom:6px;">
+                    <span class="badge badge-soon">📅 Available May 2025</span>
+                  </div>
+                  <div class="result-title">Green Garden Residence</div>
+                </div>
+                <div class="result-price">LKR 12,500<br><small>/month</small></div>
+              </div>
+              <div class="result-loc">📍 Havelock Town · 1.2 km from university · 🚌 15 min</div>
+              <div class="result-tags">
+                <span class="tag">📶 WiFi</span><span class="tag">🛡 Security</span><span class="tag">🌿 Garden</span>
+              </div>
+            </div>
+            <div class="result-footer">
+              <div style="font-size:13px;color:var(--gray-400);">⭐ 4.5 · 18 reviews · 5 slots upcoming</div>
+              <div style="display:flex;gap:8px;">
+                <button class="btn btn-ghost btn-sm" onclick="event.stopPropagation()">♡ Save</button>
+                <button class="btn btn-primary btn-sm" onclick="event.stopPropagation();showPage('detail')">View Details</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- Result 3 -->
+        <div class="result-card" onclick="showPage('detail')">
+          <div class="result-img" style="background:linear-gradient(135deg,#FED7AA,#FCA5A5);">
+            <div class="result-img-placeholder">🏡</div>
+          </div>
+          <div class="result-body">
+            <div>
+              <div class="result-header">
+                <div>
+                  <div style="display:flex;gap:6px;margin-bottom:6px;">
+                    <span class="badge badge-available">✓ Available Now</span>
+                    <span class="badge badge-verified">✅ Verified</span>
+                  </div>
+                  <div class="result-title">Mahaweli Heights Annex</div>
+                </div>
+                <div class="result-price">LKR 22,000<br><small>/month</small></div>
+              </div>
+              <div class="result-loc">📍 Peradeniya Road · 0.4 km from university · 🚶 5 min walk</div>
+              <div class="result-tags">
+                <span class="tag">📶 WiFi</span><span class="tag">🍳 Kitchen</span><span class="tag">🧺 Laundry</span><span class="tag">❄️ AC</span><span class="tag">🍽 Meals</span>
+              </div>
+            </div>
+            <div class="result-footer">
+              <div style="font-size:13px;color:var(--gray-400);">⭐ 4.9 · 47 reviews · 1 slot left</div>
+              <div style="display:flex;gap:8px;">
+                <button class="btn btn-ghost btn-sm" onclick="event.stopPropagation()">♡ Save</button>
+                <button class="btn btn-primary btn-sm" onclick="event.stopPropagation();showPage('detail')">View Details</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- Result 4 -->
+        <div class="result-card" onclick="showPage('detail')">
+          <div class="result-img" style="background:linear-gradient(135deg,#E9D5FF,#C4B5FD);">
+            <div class="result-img-placeholder">🏢</div>
+          </div>
+          <div class="result-body">
+            <div>
+              <div class="result-header">
+                <div>
+                  <div style="display:flex;gap:6px;margin-bottom:6px;">
+                    <span class="badge badge-soon">📅 Available July 2025</span>
+                    <span class="badge badge-group">👥 Best for Groups</span>
+                  </div>
+                  <div class="result-title">Campus Gate Residency</div>
+                </div>
+                <div class="result-price">LKR 9,500<br><small>/month</small></div>
+              </div>
+              <div class="result-loc">📍 Reid Avenue · 0.2 km from university · 🚶 3 min walk</div>
+              <div class="result-tags">
+                <span class="tag">📶 WiFi</span><span class="tag">🛡 Security</span><span class="tag">📺 TV Room</span>
+              </div>
+            </div>
+            <div class="result-footer">
+              <div style="font-size:13px;color:var(--gray-400);">⭐ 4.3 · 12 reviews · 8 slots upcoming</div>
+              <div style="display:flex;gap:8px;">
+                <button class="btn btn-ghost btn-sm" onclick="event.stopPropagation()">♡ Save</button>
+                <button class="btn btn-primary btn-sm" onclick="event.stopPropagation();showPage('detail')">View Details</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- Pagination -->
+      <div style="display:flex;justify-content:center;gap:8px;margin-top:28px;">
+        <button class="btn btn-ghost btn-sm">← Prev</button>
+        <button class="btn btn-primary btn-sm">1</button>
+        <button class="btn btn-ghost btn-sm">2</button>
+        <button class="btn btn-ghost btn-sm">3</button>
+        <button class="btn btn-ghost btn-sm">Next →</button>
+      </div>
+    </main>
+  </div>
+  <footer style="margin-top:40px;background:var(--gray-900);color:var(--gray-400);text-align:center;padding:24px;font-size:13px;">
+    <strong style="color:white">Smart Boarding Finder</strong> · © 2025
+  </footer>
+</div>
+
+<!-- ════════════ DETAIL PAGE ════════════ -->
+<div class="page" id="page-detail">
+  <div class="detail-wrap">
+    <div class="breadcrumb">
+      <a onclick="showPage('home')">Home</a><span class="sep">›</span>
+      <a onclick="showPage('results')">Search Results</a><span class="sep">›</span>
+      <span>Sunset View Boarding House</span>
+    </div>
+    <!-- Gallery -->
+    <div class="gallery">
+      <div class="gallery-cell gallery-main" style="background:linear-gradient(135deg,#BFDBFE,#93C5FD);">🏘️</div>
+      <div class="gallery-cell gallery-thumb" style="background:linear-gradient(135deg,#A7F3D0,#6EE7B7);">🛏️</div>
+      <div class="gallery-cell gallery-thumb" style="background:linear-gradient(135deg,#FED7AA,#FCA5A5);">🍳</div>
+      <div class="gallery-cell gallery-thumb" style="background:linear-gradient(135deg,#E9D5FF,#C4B5FD);">🚿</div>
+      <div class="gallery-cell gallery-thumb has-more" style="background:linear-gradient(135deg,#FEF3C7,#FDE68A);">🏡</div>
+    </div>
+
+    <div class="detail-layout">
+      <!-- Left content -->
+      <div class="detail-content">
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap;">
+          <div>
+            <div style="display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap;">
+              <span class="badge badge-available" style="font-size:12px;padding:5px 12px">✓ Available Now</span>
+              <span class="badge badge-verified" style="font-size:12px;padding:5px 12px">✅ Verified Owner</span>
+              <span class="badge badge-group" style="font-size:12px;padding:5px 12px">👥 Best for Groups</span>
+            </div>
+            <div class="detail-title">Sunset View Boarding House</div>
+            <div class="detail-meta">
+              <span>📍 Kandy Road, Colombo 7</span>
+              <span>🚶 0.8 km · 10 min walk to UoC</span>
+              <span><span class="rating-stars">★★★★★</span> 4.8 (32 reviews)</span>
+            </div>
+          </div>
+          <button class="btn btn-ghost" style="gap:6px">♡ Save</button>
+        </div>
+        <p style="color:var(--gray-600);font-size:15px;line-height:1.7;margin-bottom:20px;">A comfortable and secure boarding facility designed specifically for university students. Located just minutes from the University of Colombo, offering clean rooms, reliable WiFi, and a supportive community environment. All rooms are furnished and bills included.</p>
+
+        <div class="divider"></div>
+        <h3 style="font-weight:700;font-size:17px;margin-bottom:14px;">🏠 Choose Your Room</h3>
+        <div class="room-types-grid">
+          <div class="room-type-card selected" onclick="selectRoom(this)">
+            <div class="type-icon">🛏️</div>
+            <div class="type-name">Single Room</div>
+            <div class="type-price">LKR 18,000</div>
+            <div style="font-size:11px;color:var(--gray-400);margin-top:2px;">2 available</div>
+          </div>
+          <div class="room-type-card" onclick="selectRoom(this)">
+            <div class="type-icon">🛌</div>
+            <div class="type-name">Shared (2 pax)</div>
+            <div class="type-price">LKR 11,000</div>
+            <div style="font-size:11px;color:var(--gray-400);margin-top:2px;">4 available</div>
+          </div>
+          <div class="room-type-card" onclick="selectRoom(this)">
+            <div class="type-icon">🏠</div>
+            <div class="type-name">Studio Annex</div>
+            <div class="type-price">LKR 28,000</div>
+            <div style="font-size:11px;color:var(--gray-400);margin-top:2px;">1 available</div>
+          </div>
+        </div>
+
+        <div class="divider"></div>
+        <h3 style="font-weight:700;font-size:17px;margin-bottom:14px;">✨ Facilities & Amenities</h3>
+        <div class="facilities-grid">
+          <div class="facility-chip"><span class="facility-icon">📶</span> WiFi</div>
+          <div class="facility-chip"><span class="facility-icon">🍳</span> Kitchen</div>
+          <div class="facility-chip"><span class="facility-icon">🚗</span> Parking</div>
+          <div class="facility-chip"><span class="facility-icon">🧺</span> Laundry</div>
+          <div class="facility-chip"><span class="facility-icon">🛡️</span> 24h Security</div>
+          <div class="facility-chip"><span class="facility-icon">❄️</span> AC (optional)</div>
+          <div class="facility-chip"><span class="facility-icon">📺</span> Common TV</div>
+          <div class="facility-chip"><span class="facility-icon">💡</span> Bills Included</div>
+          <div class="facility-chip"><span class="facility-icon">🚿</span> Attached Bath</div>
+          <div class="facility-chip"><span class="facility-icon">🚪</span> Key Lock</div>
+        </div>
+
+        <div class="divider"></div>
+        <h3 style="font-weight:700;font-size:17px;margin-bottom:14px;">📋 House Rules</h3>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:14px;color:var(--gray-600);">
+          <div>✅ No smoking inside</div>
+          <div>✅ Guests until 9 PM</div>
+          <div>✅ Quiet hours 10 PM–6 AM</div>
+          <div>✅ No parties</div>
+          <div>✅ Cooking allowed</div>
+          <div>✅ Pets not allowed</div>
+        </div>
+
+        <div class="divider"></div>
+        <div class="reviews-section">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+            <h3 style="font-weight:700;font-size:17px;">💬 Student Reviews</h3>
+            <a class="see-all" onclick="showPage('reviews')">All 32 reviews →</a>
+          </div>
+          <div class="review-card">
+            <div class="review-header">
+              <div class="reviewer-avatar">AP</div>
+              <div class="reviewer-info"><div class="name">Ayesha Perera</div><div class="date">March 2025</div></div>
+              <div class="review-stars">★★★★★</div>
+            </div>
+            <p class="review-text">"Amazing place, very clean and the landlady is very friendly. WiFi works great. Highly recommend for UoC students!"</p>
+          </div>
+          <div class="review-card">
+            <div class="review-header">
+              <div class="reviewer-avatar" style="background:#D1FAE5;color:#065F46;">KD</div>
+              <div class="reviewer-info"><div class="name">Kasun De Silva</div><div class="date">February 2025</div></div>
+              <div class="review-stars">★★★★☆</div>
+            </div>
+            <p class="review-text">"Good value for money. Location is perfect, walking distance from campus. Kitchen facilities could be a bit better."</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Booking panel -->
+      <div>
+        <div class="booking-panel">
+          <div class="price-big">LKR 18,000</div>
+          <div class="price-sub">per month · Single Room · Bills included</div>
+          <div class="avail-badge"><span class="dot"></span> Available Now · 2 slots remaining</div>
+          <div style="background:#FEF3C7;color:#92400E;padding:10px 14px;border-radius:var(--radius-sm);font-size:13px;font-weight:600;margin-bottom:16px;">📅 Future vacancy: July 2025 · 3 more slots</div>
+          <div style="border-top:1px solid var(--gray-100);padding-top:16px;">
+            <div style="display:flex;justify-content:space-between;font-size:14px;margin-bottom:8px;color:var(--gray-600);">
+              <span>Monthly rent</span><span style="font-weight:600;color:var(--gray-800);">LKR 18,000</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;font-size:14px;margin-bottom:8px;color:var(--gray-600);">
+              <span>Security deposit</span><span style="font-weight:600;color:var(--gray-800);">LKR 18,000</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;font-size:14px;margin-bottom:14px;color:var(--gray-600);">
+              <span>Advance payment</span><span style="font-weight:600;color:var(--gray-800);">LKR 5,000</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;font-size:15px;font-weight:800;color:var(--gray-900);border-top:1px solid var(--gray-200);padding-top:12px;">
+              <span>Pay to Book</span><span style="color:var(--brand)">LKR 5,000</span>
+            </div>
+          </div>
+          <div class="panel-btns">
+            <button class="btn btn-primary btn-lg" style="justify-content:center" onclick="showPage('booking')">🏠 Book Now</button>
+            <button class="btn btn-outline btn-lg" style="justify-content:center" onclick="showPage('booking')">📅 Reserve for Future</button>
+          </div>
+          <div style="margin-top:16px;text-align:center;font-size:12px;color:var(--gray-400);">🔒 Secure payment · Free cancellation within 24h</div>
+          <div style="border-top:1px solid var(--gray-100);margin-top:16px;padding-top:14px;">
+            <div style="font-size:13px;font-weight:600;color:var(--gray-700);margin-bottom:8px;">Owner Details</div>
+            <div style="display:flex;align-items:center;gap:10px;">
+              <div style="width:40px;height:40px;border-radius:50%;background:var(--brand-light);color:var(--brand);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:15px;">NP</div>
+              <div>
+                <div style="font-weight:600;font-size:14px;">Nalini Perera</div>
+                <div style="font-size:12px;color:var(--success);">✅ Verified Owner · Responds in 2h</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <footer style="margin-top:40px;background:var(--gray-900);color:var(--gray-400);text-align:center;padding:24px;font-size:13px;">
+    <strong style="color:white">Smart Boarding Finder</strong> · © 2025
+  </footer>
+</div>
+
+<!-- ════════════ BOOKING PAGE ════════════ -->
+<div class="page" id="page-booking">
+  <div class="booking-page-wrap">
+    <div class="breadcrumb">
+      <a onclick="showPage('home')">Home</a><span class="sep">›</span>
+      <a onclick="showPage('detail')">Sunset View Boarding</a><span class="sep">›</span>
+      <span>Booking</span>
+    </div>
+    <h1>Complete Your Booking</h1>
+    <div class="booking-layout">
+      <div style="display:flex;flex-direction:column;gap:18px;">
+        <!-- Selected room summary -->
+        <div style="background:var(--brand-light);border:1.5px solid var(--brand-mid);border-radius:var(--radius-lg);padding:16px;display:flex;gap:16px;align-items:center;">
+          <div style="width:64px;height:64px;border-radius:var(--radius-md);background:linear-gradient(135deg,#BFDBFE,#93C5FD);display:flex;align-items:center;justify-content:center;font-size:28px;flex-shrink:0;">🏘️</div>
+          <div>
+            <div style="font-weight:700;font-size:15px;">Sunset View Boarding House</div>
+            <div style="font-size:13px;color:var(--gray-600);">Single Room · Kandy Road, Colombo 7</div>
+            <div style="display:flex;gap:6px;margin-top:6px;"><span class="badge badge-available">✓ Available Now</span><span class="badge badge-verified">✅ Verified</span></div>
+          </div>
+          <div style="margin-left:auto;text-align:right;">
+            <div style="font-size:20px;font-weight:800;color:var(--brand);">LKR 18,000</div>
+            <div style="font-size:12px;color:var(--gray-400);">/month</div>
+          </div>
+        </div>
+
+        <!-- Personal details -->
+        <div class="booking-form-section">
+          <h3>👤 Personal Details</h3>
+          <div class="form-row">
+            <div class="field"><label>First Name</label><input type="text" placeholder="Kasun"></div>
+            <div class="field"><label>Last Name</label><input type="text" placeholder="Perera"></div>
+          </div>
+          <div class="form-row">
+            <div class="field"><label>Email</label><input type="email" placeholder="kasun@students.ac.lk"></div>
+            <div class="field"><label>Phone</label><input type="tel" placeholder="+94 77 123 4567"></div>
+          </div>
+          <div class="form-row">
+            <div class="field"><label>University</label><input type="text" placeholder="University of Colombo"></div>
+            <div class="field"><label>Student ID</label><input type="text" placeholder="CS/2022/001"></div>
+          </div>
+        </div>
+
+        <!-- Move-in details -->
+        <div class="booking-form-section">
+          <h3>📅 Move-in Details</h3>
+          <div class="form-row">
+            <div class="field"><label>Move-in Date</label><input type="date" value="2025-04-01"></div>
+            <div class="field"><label>Duration</label>
+              <select>
+                <option>3 months</option><option>6 months</option><option selected>12 months</option>
+              </select>
+            </div>
+          </div>
+          <div style="background:var(--brand-light);border-radius:var(--radius-sm);padding:12px 14px;font-size:13px;color:var(--brand);font-weight:500;margin-top:4px;">
+            💡 Booking for future? Select a date in May 2025 or later to reserve for the next intake.
+          </div>
+        </div>
+
+        <!-- Payment -->
+        <div class="booking-form-section">
+          <h3>💳 Payment Method</h3>
+          <div class="payment-methods">
+            <label class="payment-option selected" onclick="selectPayment(this)">
+              <input type="radio" name="payment" checked>
+              <span class="payment-icon">💳</span>
+              <div><div class="method-label">Credit / Debit Card</div><div class="method-sub">Visa, Mastercard, Amex</div></div>
+            </label>
+            <label class="payment-option" onclick="selectPayment(this)">
+              <input type="radio" name="payment">
+              <span class="payment-icon">🏦</span>
+              <div><div class="method-label">Online Bank Transfer</div><div class="method-sub">BOC, HNB, Commercial Bank</div></div>
+            </label>
+            <label class="payment-option" onclick="selectPayment(this)">
+              <input type="radio" name="payment">
+              <span class="payment-icon">📱</span>
+              <div><div class="method-label">eZ Cash / mCash</div><div class="method-sub">Dialog, Mobitel</div></div>
+            </label>
+          </div>
+          <div style="display:grid;grid-template-columns:2fr 1fr;gap:12px;">
+            <div class="field"><label>Card Number</label><input type="text" placeholder="1234 5678 9012 3456"></div>
+            <div class="field"><label>Expiry</label><input type="text" placeholder="MM/YY"></div>
+          </div>
+          <div class="field" style="margin-top:12px;max-width:120px;"><label>CVV</label><input type="text" placeholder="123"></div>
+        </div>
+      </div>
+
+      <!-- Order summary -->
+      <div>
+        <div class="booking-summary">
+          <h3>📋 Order Summary</h3>
+          <div style="background:var(--gray-50);border-radius:var(--radius-md);padding:12px;margin-bottom:16px;">
+            <div style="font-weight:600;font-size:14px;">Sunset View Boarding House</div>
+            <div style="font-size:13px;color:var(--gray-500);">Single Room · 12 months</div>
+          </div>
+          <div class="summary-item"><span>Advance payment</span><span>LKR 5,000</span></div>
+          <div class="summary-item"><span>Security deposit</span><span>LKR 18,000</span></div>
+          <div class="summary-item"><span>First month rent</span><span>LKR 18,000</span></div>
+          <div class="summary-item" style="color:var(--success);"><span>🎉 First-time discount</span><span>- LKR 1,000</span></div>
+          <div class="summary-total"><span>Total Due Now</span><span style="color:var(--brand);">LKR 40,000</span></div>
+          <button class="btn btn-success btn-lg" style="width:100%;justify-content:center;margin-top:20px;font-size:15px;">
+            🔒 Pay Advance & Reserve
+          </button>
+          <div style="text-align:center;font-size:12px;color:var(--gray-400);margin-top:10px;">
+            Secure payment · SSL encrypted<br>Free cancellation within 24 hours
+          </div>
+        </div>
+        <div style="background:var(--gray-50);border:1px solid var(--gray-200);border-radius:var(--radius-md);padding:14px;margin-top:14px;font-size:13px;color:var(--gray-600);">
+          <strong style="color:var(--gray-800);">📌 What happens next?</strong>
+          <ol style="margin-top:8px;margin-left:16px;display:flex;flex-direction:column;gap:5px;">
+            <li>Owner confirms within 2 hours</li>
+            <li>You receive booking confirmation by email</li>
+            <li>Move in on your selected date</li>
+          </ol>
+        </div>
+      </div>
+    </div>
+  </div>
+  <footer style="margin-top:40px;background:var(--gray-900);color:var(--gray-400);text-align:center;padding:24px;font-size:13px;">
+    <strong style="color:white">Smart Boarding Finder</strong> · © 2025
+  </footer>
+</div>
+
+<!-- ════════════ OWNER DASHBOARD ════════════ -->
+<div class="page" id="page-dashboard">
+  <div class="dashboard-wrap">
+    <div class="dashboard-header">
+      <div>
+        <div style="font-size:13px;color:var(--gray-500);margin-bottom:4px;">Welcome back, Nalini 👋</div>
+        <h1>Owner Dashboard</h1>
+      </div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;">
+        <span class="badge badge-verified" style="font-size:13px;padding:6px 14px;">✅ Verified Owner</span>
+        <button class="btn btn-primary">+ Add New Listing</button>
+      </div>
+    </div>
+
+    <!-- Stats -->
+    <div class="dashboard-grid">
+      <div class="dash-stat">
+        <div class="stat-icon">🏠</div>
+        <div class="stat-val">3</div>
+        <div class="stat-desc">Active Listings</div>
+      </div>
+      <div class="dash-stat">
+        <div class="stat-icon">📅</div>
+        <div class="stat-val">12</div>
+        <div class="stat-desc">Current Bookings</div>
+      </div>
+      <div class="dash-stat">
+        <div class="stat-icon">⏳</div>
+        <div class="stat-val">5</div>
+        <div class="stat-desc">Upcoming Reservations</div>
+      </div>
+      <div class="dash-stat">
+        <div class="stat-icon">💰</div>
+        <div class="stat-val" style="font-size:20px;">LKR 216k</div>
+        <div class="stat-desc">Monthly Revenue</div>
+      </div>
+    </div>
+
+    <div class="dash-main">
+      <!-- Listing Form -->
+      <div class="listing-form">
+        <h3>✏️ Edit Listing — Sunset View Boarding</h3>
+        <div class="form-group">
+          <label>Property Name</label>
+          <input type="text" value="Sunset View Boarding House">
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+          <div class="form-group">
+            <label>Address</label>
+            <input type="text" value="No. 45, Kandy Road, Colombo 7">
+          </div>
+          <div class="form-group">
+            <label>Nearest University</label>
+            <select><option selected>University of Colombo</option><option>UoP</option><option>UoJ</option></select>
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;">
+          <div class="form-group">
+            <label>Monthly Price (LKR)</label>
+            <input type="number" value="18000">
+          </div>
+          <div class="form-group">
+            <label>Current Vacancies</label>
+            <input type="number" value="2">
+          </div>
+          <div class="form-group">
+            <label>Room Type</label>
+            <select><option>Single</option><option>Shared</option><option>Both</option></select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Upcoming Vacancies</label>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+            <input type="number" placeholder="Number of slots" value="3">
+            <input type="date" value="2025-07-01">
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Description</label>
+          <textarea>A comfortable and secure boarding facility designed for university students, just 0.8km from UoC. All rooms furnished, WiFi and bills included.</textarea>
+        </div>
+        <div class="form-group">
+          <label>Facilities</label>
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;font-size:13px;">
+            <label class="check-item"><input type="checkbox" checked> 📶 WiFi</label>
+            <label class="check-item"><input type="checkbox" checked> 🍳 Kitchen</label>
+            <label class="check-item"><input type="checkbox" checked> 🚗 Parking</label>
+            <label class="check-item"><input type="checkbox" checked> 🧺 Laundry</label>
+            <label class="check-item"><input type="checkbox" checked> 🛡 Security</label>
+            <label class="check-item"><input type="checkbox"> ❄️ AC</label>
+            <label class="check-item"><input type="checkbox"> 🍽 Meals</label>
+            <label class="check-item"><input type="checkbox"> 📺 TV Room</label>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Upload Photos</label>
+          <div class="upload-zone">
+            <div class="upload-icon">📷</div>
+            <p>Drag & drop photos here, or <strong>click to browse</strong></p>
+            <p style="font-size:12px;margin-top:4px;">JPG, PNG up to 10MB each · Max 10 photos</p>
+          </div>
+        </div>
+
+        <!-- Toggles -->
+        <div style="margin:16px 0;">
+          <div class="toggle-row">
+            <div><div class="toggle-label">🟢 Mark as Available</div><div class="toggle-sub">Listing visible to students</div></div>
+            <button class="toggle on" onclick="this.classList.toggle('on')"></button>
+          </div>
+          <div class="toggle-row">
+            <div><div class="toggle-label">📅 Accept Future Reservations</div><div class="toggle-sub">Allow students to book upcoming vacancies</div></div>
+            <button class="toggle on" onclick="this.classList.toggle('on')"></button>
+          </div>
+          <div class="toggle-row">
+            <div><div class="toggle-label">👥 Groups Welcome</div><div class="toggle-sub">Show "Best for Groups" badge</div></div>
+            <button class="toggle on" onclick="this.classList.toggle('on')"></button>
+          </div>
+          <div class="toggle-row">
+            <div><div class="toggle-label">🚫 Mark as Unavailable</div><div class="toggle-sub">Temporarily hide from search results</div></div>
+            <button class="toggle" onclick="this.classList.toggle('on')"></button>
+          </div>
+        </div>
+
+        <div style="display:flex;gap:10px;margin-top:4px;">
+          <button class="btn btn-primary" style="flex:1;justify-content:center;">💾 Save Changes</button>
+          <button class="btn btn-ghost">Preview</button>
+        </div>
+      </div>
+
+      <!-- Right sidebar -->
+      <div class="dash-side">
+        <!-- Recent Bookings -->
+        <div class="bookings-panel">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+            <h3>Recent Bookings</h3>
+            <a style="font-size:13px;color:var(--brand);cursor:pointer;font-weight:600;">View all</a>
+          </div>
+          <div class="booking-item">
+            <div class="booking-avatar">AP</div>
+            <div class="booking-info"><div class="name">Ayesha Perera</div><div class="date">Single Room · Apr 2025</div></div>
+            <div class="booking-status status-confirmed">Confirmed</div>
+          </div>
+          <div class="booking-item">
+            <div class="booking-avatar" style="background:#FEF3C7;color:#92400E;">KS</div>
+            <div class="booking-info"><div class="name">Kasun Silva</div><div class="date">Shared Room · Apr 2025</div></div>
+            <div class="booking-status status-pending">Pending</div>
+          </div>
+          <div class="booking-item">
+            <div class="booking-avatar" style="background:#F3E8FF;color:#5B21B6;">NF</div>
+            <div class="booking-info"><div class="name">Nimesha Fernando</div><div class="date">Single Room · Jul 2025</div></div>
+            <div class="booking-status status-upcoming">Reserved</div>
+          </div>
+          <div class="booking-item">
+            <div class="booking-avatar" style="background:#D1FAE5;color:#065F46;">RM</div>
+            <div class="booking-info"><div class="name">Ravindu Manoj</div><div class="date">Studio · Jul 2025</div></div>
+            <div class="booking-status status-upcoming">Reserved</div>
+          </div>
+        </div>
+
+        <!-- Quick stats per listing -->
+        <div class="bookings-panel">
+          <h3 style="margin-bottom:16px;">My Listings</h3>
+          <div style="display:flex;flex-direction:column;gap:10px;">
+            <div style="padding:12px;background:var(--gray-50);border-radius:var(--radius-md);border:1px solid var(--gray-200);">
+              <div style="display:flex;justify-content:space-between;align-items:center;">
+                <div style="font-weight:600;font-size:14px;">Sunset View</div>
+                <span class="badge badge-available">Active</span>
+              </div>
+              <div style="font-size:12px;color:var(--gray-500);margin-top:4px;">2 vacancies · LKR 18,000</div>
+              <div style="font-size:12px;color:var(--gray-400);margin-top:2px;">⭐ 4.8 · 32 reviews</div>
+            </div>
+            <div style="padding:12px;background:var(--gray-50);border-radius:var(--radius-md);border:1px solid var(--gray-200);">
+              <div style="display:flex;justify-content:space-between;align-items:center;">
+                <div style="font-weight:600;font-size:14px;">Annex No. 2</div>
+                <span class="badge badge-available">Active</span>
+              </div>
+              <div style="font-size:12px;color:var(--gray-500);margin-top:4px;">0 vacancies · LKR 14,500</div>
+              <div style="font-size:12px;color:var(--gray-400);margin-top:2px;">⭐ 4.6 · 18 reviews</div>
+            </div>
+            <div style="padding:12px;background:var(--gray-50);border-radius:var(--radius-md);border:1px solid var(--gray-200);">
+              <div style="display:flex;justify-content:space-between;align-items:center;">
+                <div style="font-weight:600;font-size:14px;">Galle Face Rooms</div>
+                <span class="badge badge-soon">Unavailable</span>
+              </div>
+              <div style="font-size:12px;color:var(--gray-500);margin-top:4px;">Renovation in progress</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <footer style="margin-top:40px;background:var(--gray-900);color:var(--gray-400);text-align:center;padding:24px;font-size:13px;">
+    <strong style="color:white">Smart Boarding Finder</strong> · © 2025
+  </footer>
+</div>
+
+<!-- ════════════ REVIEWS PAGE ════════════ -->
+<div class="page" id="page-reviews">
+  <div class="reviews-wrap">
+    <div class="breadcrumb">
+      <a onclick="showPage('home')">Home</a><span class="sep">›</span>
+      <a onclick="showPage('detail')">Sunset View Boarding</a><span class="sep">›</span>
+      <span>Reviews</span>
+    </div>
+    <h1>Student Reviews</h1>
+    <p style="color:var(--gray-500);margin-bottom:24px;">Sunset View Boarding House · Kandy Road, Colombo 7</p>
+    <!-- Overall rating -->
+    <div class="overall-rating">
+      <div class="rating-big">
+        <div class="num">4.8</div>
+        <div class="stars">★★★★★</div>
+        <div class="count">32 reviews</div>
+      </div>
+      <div class="rating-bars">
+        <div class="rating-bar-row">
+          <span style="min-width:14px;">5</span>
+          <div class="bar-track"><div class="bar-fill" style="width:80%"></div></div>
+          <span style="min-width:30px;color:var(--gray-500);">26</span>
+        </div>
+        <div class="rating-bar-row">
+          <span style="min-width:14px;">4</span>
+          <div class="bar-track"><div class="bar-fill" style="width:15%"></div></div>
+          <span style="min-width:30px;color:var(--gray-500);">5</span>
+        </div>
+        <div class="rating-bar-row">
+          <span style="min-width:14px;">3</span>
+          <div class="bar-track"><div class="bar-fill" style="width:5%"></div></div>
+          <span style="min-width:30px;color:var(--gray-500);">1</span>
+        </div>
+        <div class="rating-bar-row">
+          <span style="min-width:14px;">2</span>
+          <div class="bar-track"><div class="bar-fill" style="width:0%"></div></div>
+          <span style="min-width:30px;color:var(--gray-500);">0</span>
+        </div>
+        <div class="rating-bar-row">
+          <span style="min-width:14px;">1</span>
+          <div class="bar-track"><div class="bar-fill" style="width:0%"></div></div>
+          <span style="min-width:30px;color:var(--gray-500);">0</span>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px;font-size:13px;">
+          <div><span style="color:var(--gray-500);">Cleanliness</span><br><span style="font-weight:700;color:var(--gray-800);">★★★★★ 4.9</span></div>
+          <div><span style="color:var(--gray-500);">Location</span><br><span style="font-weight:700;color:var(--gray-800);">★★★★★ 5.0</span></div>
+          <div><span style="color:var(--gray-500);">Value</span><br><span style="font-weight:700;color:var(--gray-800);">★★★★☆ 4.6</span></div>
+          <div><span style="color:var(--gray-500);">Owner</span><br><span style="font-weight:700;color:var(--gray-800);">★★★★★ 4.8</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Write review CTA -->
+    <div class="write-review">
+      <div style="font-size:28px;margin-bottom:8px;">✍️</div>
+      <p>Share your experience</p>
+      <div style="font-size:13px;color:var(--brand);margin-top:4px;font-weight:400;">Help fellow students make informed decisions</div>
+      <div style="display:flex;justify-content:center;gap:6px;margin:12px 0;font-size:28px;cursor:pointer;">
+        <span>☆</span><span>☆</span><span>☆</span><span>☆</span><span>☆</span>
+      </div>
+      <button class="btn btn-primary" style="margin-top:4px;">Write a Review</button>
+    </div>
+
+    <!-- Reviews list -->
+    <div class="reviews-list">
+      <div class="review-card-full">
+        <div class="review-header">
+          <div class="reviewer-avatar">AP</div>
+          <div class="reviewer-info"><div class="name">Ayesha Perera</div><div class="date">Faculty of Science · March 2025</div></div>
+          <div class="review-stars" style="font-size:16px;">★★★★★</div>
+        </div>
+        <p class="review-text" style="margin-bottom:10px;">"Amazing place, very clean and the landlady is very friendly. WiFi works great for online classes and video calls. The kitchen is well-equipped. Highly recommend for UoC students!"</p>
+        <div style="display:flex;flex-wrap:wrap;gap:6px;font-size:12px;color:var(--gray-400);">
+          <span>👍 Helpful (8)</span><span>·</span><span>Single Room</span><span>·</span><span>6 months stay</span>
+        </div>
+      </div>
+      <div class="review-card-full">
+        <div class="review-header">
+          <div class="reviewer-avatar" style="background:#D1FAE5;color:#065F46;">KD</div>
+          <div class="reviewer-info"><div class="name">Kasun De Silva</div><div class="date">Faculty of Engineering · February 2025</div></div>
+          <div class="review-stars" style="font-size:16px;">★★★★☆</div>
+        </div>
+        <p class="review-text" style="margin-bottom:10px;">"Good value for money. Location is perfect, walking distance from campus. Kitchen facilities could be a bit better but overall very satisfied. The owner responds quickly to any issues."</p>
+        <div style="display:flex;flex-wrap:wrap;gap:6px;font-size:12px;color:var(--gray-400);">
+          <span>👍 Helpful (5)</span><span>·</span><span>Shared Room</span><span>·</span><span>12 months stay</span>
+        </div>
+      </div>
+      <div class="review-card-full">
+        <div class="review-header">
+          <div class="reviewer-avatar" style="background:#F3E8FF;color:#5B21B6;">NF</div>
+          <div class="reviewer-info"><div class="name">Nimesha Fernando</div><div class="date">Faculty of Arts · January 2025</div></div>
+          <div class="review-stars" style="font-size:16px;">★★★★★</div>
+        </div>
+        <p class="review-text" style="margin-bottom:10px;">"I was a first-year student and was nervous about finding a boarding. The Smart Boarding Finder made it so easy! Found this place, reserved it 2 months before my semester started. Excellent experience!"</p>
+        <div style="display:flex;flex-wrap:wrap;gap:6px;font-size:12px;color:var(--gray-400);">
+          <span>👍 Helpful (12)</span><span>·</span><span>Single Room</span><span>·</span><span>Reserved in advance</span>
+        </div>
+      </div>
+      <div class="review-card-full">
+        <div class="review-header">
+          <div class="reviewer-avatar" style="background:#FEF3C7;color:#92400E;">RM</div>
+          <div class="reviewer-info"><div class="name">Ravindu Mendis</div><div class="date">Faculty of Management · December 2024</div></div>
+          <div class="review-stars" style="font-size:16px;">★★★★★</div>
+        </div>
+        <p class="review-text" style="margin-bottom:10px;">"Been here for a year now. Very safe neighborhood, 24h security makes parents happy too. Only 10 min walk to campus. Will be renewing my contract!"</p>
+        <div style="display:flex;flex-wrap:wrap;gap:6px;font-size:12px;color:var(--gray-400);">
+          <span>👍 Helpful (9)</span><span>·</span><span>Single Room</span><span>·</span><span>12 months stay</span>
+        </div>
+      </div>
+    </div>
+    <div style="text-align:center;margin-top:24px;">
+      <button class="btn btn-outline">Load More Reviews</button>
+    </div>
+  </div>
+  <footer style="margin-top:40px;background:var(--gray-900);color:var(--gray-400);text-align:center;padding:24px;font-size:13px;">
+    <strong style="color:white">Smart Boarding Finder</strong> · © 2025
+  </footer>
+</div>
+
+<!-- ════════════ LOGIN PAGE ════════════ -->
+<div class="page" id="page-login">
+  <div class="auth-page">
+    <div class="auth-container">
+      <div class="auth-card">
+        <div class="auth-header">
+          <div class="auth-logo">
+            <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+          </div>
+          <h2>Welcome Back</h2>
+          <p>Sign in to your Smart Boarding account</p>
+          <div class="auth-role-tabs">
+            <button class="auth-role-tab active" id="login-tab-student" onclick="switchLoginRole('student')">🎓 Student / Boarder</button>
+            <button class="auth-role-tab" id="login-tab-owner" onclick="switchLoginRole('owner')">🏠 Boarding Owner</button>
+          </div>
+        </div>
+        <div class="auth-body">
+          <div class="auth-social">
+            <button class="auth-social-btn">🌐 Google</button>
+            <button class="auth-social-btn">📘 Facebook</button>
+          </div>
+          <div class="auth-divider">or sign in with email</div>
+          <div class="auth-field">
+            <label>Email Address</label>
+            <div class="input-icon-wrap">
+              <span class="input-icon">✉️</span>
+              <input type="email" placeholder="you@example.com" style="padding-left:40px;">
+            </div>
+          </div>
+          <div class="auth-field">
+            <label>Password</label>
+            <div class="input-icon-wrap">
+              <span class="input-icon">🔒</span>
+              <input type="password" placeholder="Enter your password" style="padding-left:40px;">
+            </div>
+          </div>
+          <div class="forgot-link"><a>Forgot password?</a></div>
+          <div id="login-owner-extra" style="display:none;">
+            <div class="owner-extras">
+              <div class="oe-title">🏠 Owner Verification</div>
+              <div class="auth-field" style="margin-bottom:0;">
+                <label>NIC / Business Registration No.</label>
+                <input type="text" placeholder="e.g. 199512345678 or BR-12345">
+              </div>
+            </div>
+          </div>
+          <label class="auth-check"><input type="checkbox" checked> Keep me signed in for 30 days</label>
+          <button class="btn btn-primary btn-lg" style="width:100%;justify-content:center;" onclick="showPage('home')">Sign In →</button>
+          <div class="auth-footer">Don't have an account? <a onclick="showPage('signup')">Create one for free</a></div>
+          <div class="auth-footer" style="margin-top:8px;"><a onclick="showPage('home')">← Back to Home</a></div>
+        </div>
+      </div>
+      <div style="display:flex;justify-content:center;gap:24px;margin-top:20px;flex-wrap:wrap;">
+        <div style="font-size:12px;color:var(--gray-500);">🔒 SSL Secured</div>
+        <div style="font-size:12px;color:var(--gray-500);">✅ Verified Platform</div>
+        <div style="font-size:12px;color:var(--gray-500);">🇱🇰 Made for Sri Lanka</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════ SIGN UP PAGE ════════════ -->
+<div class="page" id="page-signup">
+  <div class="auth-page">
+    <div class="auth-container" style="max-width:540px;">
+      <div class="auth-card">
+        <div class="auth-header">
+          <div class="auth-logo">
+            <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+          </div>
+          <h2>Create Your Account</h2>
+          <p>Join thousands of students finding their perfect boarding</p>
+          <div class="auth-role-tabs">
+            <button class="auth-role-tab active" id="signup-tab-student" onclick="switchSignupRole('student')">🎓 I'm a Student</button>
+            <button class="auth-role-tab" id="signup-tab-owner" onclick="switchSignupRole('owner')">🏠 I'm an Owner</button>
+          </div>
+        </div>
+        <div class="auth-body">
+          <div class="auth-social">
+            <button class="auth-social-btn">🌐 Sign up with Google</button>
+            <button class="auth-social-btn">📘 Facebook</button>
+          </div>
+          <div class="auth-divider">or create account with email</div>
+          <div class="auth-row">
+            <div class="auth-field" style="margin-bottom:0;"><label>First Name</label><input type="text" placeholder="Kasun"></div>
+            <div class="auth-field" style="margin-bottom:0;"><label>Last Name</label><input type="text" placeholder="Perera"></div>
+          </div>
+          <div style="margin-bottom:18px;"></div>
+          <div class="auth-field">
+            <label>Email Address</label>
+            <div class="input-icon-wrap">
+              <span class="input-icon">✉️</span>
+              <input type="email" placeholder="kasun@students.ac.lk" style="padding-left:40px;">
+            </div>
+          </div>
+          <div class="auth-field">
+            <label>Mobile Number</label>
+            <div class="input-icon-wrap">
+              <span class="input-icon">📱</span>
+              <input type="tel" placeholder="+94 77 123 4567" style="padding-left:40px;">
+            </div>
+          </div>
+          <div id="signup-student-fields">
+            <div class="owner-extras" style="background:#F0FDF4;border-color:#A7F3D0;">
+              <div class="oe-title" style="color:var(--success);">🎓 Student Details</div>
+              <div class="auth-row" style="margin-bottom:12px;">
+                <div class="auth-field" style="margin-bottom:0;">
+                  <label>University</label>
+                  <select>
+                    <option value="">Select University</option>
+                    <option>University of Colombo</option>
+                    <option>University of Peradeniya</option>
+                    <option>University of Kelaniya</option>
+                    <option>University of Moratuwa</option>
+                    <option>University of Jaffna</option>
+                    <option>SLIIT</option>
+                    <option>NSBM Green University</option>
+                    <option>Other</option>
+                  </select>
+                </div>
+                <div class="auth-field" style="margin-bottom:0;"><label>Student ID (optional)</label><input type="text" placeholder="CS/2024/001"></div>
+              </div>
+              <div class="auth-field" style="margin-bottom:0;"><label>Faculty / Department</label><input type="text" placeholder="e.g. Faculty of Science"></div>
+            </div>
+          </div>
+          <div id="signup-owner-fields" style="display:none;">
+            <div class="owner-extras">
+              <div class="oe-title">🏠 Property Owner Details</div>
+              <div class="auth-field"><label>NIC Number</label><input type="text" placeholder="199512345678 or 952345678V"></div>
+              <div class="auth-row" style="margin-bottom:12px;">
+                <div class="auth-field" style="margin-bottom:0;">
+                  <label>Number of Properties</label>
+                  <select><option>1 property</option><option>2–3 properties</option><option>4+ properties</option></select>
+                </div>
+                <div class="auth-field" style="margin-bottom:0;">
+                  <label>Nearest University</label>
+                  <select><option>University of Colombo</option><option>University of Peradeniya</option><option>University of Kelaniya</option><option>Other</option></select>
+                </div>
+              </div>
+              <div class="auth-field" style="margin-bottom:0;"><label>Property / Business Name</label><input type="text" placeholder="e.g. Sunset View Boarding House"></div>
+            </div>
+          </div>
+          <div style="margin-bottom:18px;"></div>
+          <div class="auth-field">
+            <label>Password</label>
+            <div class="input-icon-wrap">
+              <span class="input-icon">🔒</span>
+              <input type="password" placeholder="Create a strong password" style="padding-left:40px;">
+            </div>
+            <div class="password-hint">Min. 8 characters with a number and special character</div>
+          </div>
+          <div class="auth-field">
+            <label>Confirm Password</label>
+            <div class="input-icon-wrap">
+              <span class="input-icon">🔒</span>
+              <input type="password" placeholder="Repeat your password" style="padding-left:40px;">
+            </div>
+          </div>
+          <label class="auth-check"><input type="checkbox"> I agree to the <a style="color:var(--brand);font-weight:600;">Terms of Service</a> and <a style="color:var(--brand);font-weight:600;">Privacy Policy</a></label>
+          <label class="auth-check"><input type="checkbox" checked> Send me updates about new listings and availability alerts</label>
+          <button class="btn btn-primary btn-lg" style="width:100%;justify-content:center;" onclick="showPage('home')">🚀 Create Account</button>
+          <div class="auth-footer">Already have an account? <a onclick="showPage('login')">Sign in here</a></div>
+          <div class="auth-footer" style="margin-top:8px;"><a onclick="showPage('home')">← Back to Home</a></div>
+        </div>
+      </div>
+      <div style="display:flex;justify-content:center;gap:24px;margin-top:20px;flex-wrap:wrap;">
+        <div style="font-size:12px;color:var(--gray-500);">🔒 SSL Secured</div>
+        <div style="font-size:12px;color:var(--gray-500);">✅ Free to Join</div>
+        <div style="font-size:12px;color:var(--gray-500);">🇱🇰 Made for Sri Lanka</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  function showPage(id) {
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.getElementById('page-' + id).classList.add('active');
+    document.querySelectorAll('.nav-links a').forEach(a => a.classList.remove('active'));
+    const navMap = { home:'nav-home', results:'nav-results', dashboard:'nav-dashboard', detail:'nav-results', booking:'nav-results', reviews:'nav-results', login:null, signup:null };
+    const navId = navMap[id];
+    if (navId) document.getElementById(navId).classList.add('active');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  function selectRoom(el) {
+    document.querySelectorAll('.room-type-card').forEach(c => c.classList.remove('selected'));
+    el.classList.add('selected');
+  }
+
+  function selectPayment(el) {
+    document.querySelectorAll('.payment-option').forEach(p => p.classList.remove('selected'));
+    el.classList.add('selected');
+  }
+
+  function switchLoginRole(role) {
+    document.getElementById('login-tab-student').classList.toggle('active', role === 'student');
+    document.getElementById('login-tab-owner').classList.toggle('active', role === 'owner');
+    document.getElementById('login-owner-extra').style.display = role === 'owner' ? 'block' : 'none';
+  }
+
+  function switchSignupRole(role) {
+    document.getElementById('signup-tab-student').classList.toggle('active', role === 'student');
+    document.getElementById('signup-tab-owner').classList.toggle('active', role === 'owner');
+    document.getElementById('signup-student-fields').style.display = role === 'student' ? 'block' : 'none';
+    document.getElementById('signup-owner-fields').style.display = role === 'owner' ? 'block' : 'none';
+  }
+
+  // Interactive star rating on write review section
+  document.addEventListener('DOMContentLoaded', function() {
+    const starBox = document.querySelector('.write-review div[style*="28px"]');
+    if (starBox) {
+      const spans = starBox.querySelectorAll('span');
+      let chosen = 0;
+      spans.forEach((s, i) => {
+        s.style.cursor = 'pointer';
+        s.addEventListener('mouseover', () => spans.forEach((x, j) => x.textContent = j <= i ? '★' : '☆'));
+        s.addEventListener('mouseout', () => spans.forEach((x, j) => x.textContent = j < chosen ? '★' : '☆'));
+        s.addEventListener('click', () => { chosen = i + 1; spans.forEach((x, j) => x.textContent = j < chosen ? '★' : '☆'); });
+      });
+    }
+  });
+</script>
+</body>
+</html>
